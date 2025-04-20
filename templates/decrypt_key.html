@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Decrypt Caesar Key</title>
+</head>
+<body>
+    <h1>🔓 Decrypt Caesar Key</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/decrypt-key">
+        <label for="encrypted_key">Encrypted Caesar key (as number):</label><br>
+        <input type="number" id="encrypted_key" name="encrypted_key" required><br><br>
+
+        <label for="d">Your private key (d):</label><br>
+        <input type="number" id="d" name="d" required><br><br>
+
+        <label for="n">Your modulus (n):</label><br>
+        <input type="number" id="n" name="n" required><br><br>
+
+        <button type="submit">Decrypt Key</button>
+    </form>
+
+    {% if decrypted_key is not none %}
+        <h3>✅ Your Caesar key is: {{ decrypted_key }}</h3>
+    {% endif %}
+</body>
+</html>

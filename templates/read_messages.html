@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Read Messages</title>
+</head>
+<body>
+    <h1>📥 Read Your Messages</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/read-messages">
+        <label for="username">Your name:</label><br>
+        <input type="text" id="username" name="username" required><br><br>
+
+        <label for="caesar_key">Caesar key (number):</label><br>
+        <input type="number" id="caesar_key" name="caesar_key" required><br><br>
+
+        <button type="submit">Read Messages</button>
+    </form>
+
+    {% if messages_list %}
+        <h3>📬 Your Messages:</h3>
+        <ul>
+            {% for msg in messages_list %}
+                <li><strong>From {{ msg['sender'] }}:</strong> <br>
+                    🔒 Encrypted: {{ msg['encrypted'] }} <br>
+                    🔓 Decrypted: {{ msg['decrypted'] }}
+                </li>
+                <br>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>

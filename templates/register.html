@@ -1,0 +1,34 @@
+<!-- templates/register.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register User</title>
+</head>
+<body>
+    <h1>🔐 Register RSA User</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/register">
+        <label for="name">Username:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="e">Public Key (e):</label><br>
+        <input type="number" id="e" name="e" required><br><br>
+
+        <label for="n">Public Key (n):</label><br>
+        <input type="number" id="n" name="n" required><br><br>
+
+        <button type="submit">Register</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Send Message</title>
+</head>
+<body>
+    <h1>📨 Send a Caesar-Encrypted Message</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/send-message">
+        <label for="from_user">Your name:</label><br>
+        <input type="text" id="from_user" name="from_user" required><br><br>
+
+        <label for="to_user">Friend's name:</label><br>
+        <input type="text" id="to_user" name="to_user" required><br><br>
+
+        <label for="caesar_key">Decrypted Caesar key (number):</label><br>
+        <input type="number" id="caesar_key" name="caesar_key" required><br><br>
+
+        <label for="plaintext">Message to send:</label><br>
+        <textarea id="plaintext" name="plaintext" rows="3" cols="40" required></textarea><br><br>
+
+        <button type="submit">Send Message</button>
+    </form>
+</body>
+</html>

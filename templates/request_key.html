@@ -1,0 +1,40 @@
+<!-- templates/request_key.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Request Session Key</title>
+</head>
+<body>
+    <h1>🔑 Request Session Key</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/request-session-key">
+        <label for="from_user">Your name:</label><br>
+        <input type="text" id="from_user" name="from_user" required><br><br>
+
+        <label for="to_user">Friend's name:</label><br>
+        <input type="text" id="to_user" name="to_user" required><br><br>
+
+        <button type="submit">Get Encrypted Caesar Key</button>
+    </form>
+
+    {% if encrypted_keys %}
+        <h3>🔐 Encrypted Caesar Keys:</h3>
+        <ul>
+            {% for user, encrypted_key in encrypted_keys.items() %}
+                <li>{{ user }}: {{ encrypted_key }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
