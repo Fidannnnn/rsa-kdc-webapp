@@ -1,13 +1,8 @@
 # db
 # config.py
 
-DB_NAME = "kdc_db"
-DB_USER = "postgres"
-DB_PASSWORD = "postgres"
-DB_HOST = "localhost"
-DB_PORT = "5432"
+import os
 
-SQLALCHEMY_DATABASE_URI = (
-    f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
+SQLALCHEMY_DATABASE_URI = os.environ.get('postgresql://kdc_db_user:QHCInmgZmUNHNhGKml7nwnAl4TyI6Njo@dpg-d02j86pr0fns73fhis8g-a.oregon-postgres.render.com/kdc_db')
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
