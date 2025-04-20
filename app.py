@@ -22,16 +22,7 @@ db.init_app(app)
 # Just to check it's working
 @app.route("/")
 def home():
-    return """
-        <h2>Welcome to the KDC Web App</h2>
-        <ul>
-            <li><a href='/register'>Register a user</a></li>
-            <li><a href='/request-session-key'>Request session key</a></li>
-            <li><a href='/decrypt-key'>Decrypt Caesar key</a></li>
-            <li><a href='/send-message'>Send a message</a></li>
-            <li><a href='/read-messages'>Read your messages</a></li>
-        </ul>
-    """
+    return render_template("home.html")
 
 
 # 📝 Register Page (GET + POST)
