@@ -40,30 +40,28 @@ def home():
 def register():
     if request.method == "POST":
         name = request.form.get("name")
-        e = request.form.get("e")
-        n = request.form.get("n")
 
-        if not name or not e or not n:
-            flash("⚠️ Please fill out all fields.")
-            return render_template("register.html")
-
-        try:
-            e = int(e)
-            n = int(n)
-        except ValueError:
-            flash("❌ RSA key values must be integers.")
+        if not name:
+            flash("⚠️ Please enter your name.")
             return render_template("register.html")
 
         if User.query.filter_by(name=name).first():
             flash("⚠️ User already exists!")
             return render_template("register.html")
 
+        # 🔐 Generate keys
+        keys = generate_rsa_keys()
+        e = keys['e']
+        d = keys['d']  # This will be shown to user
+        n = keys['n']
+
+        # Store only (name, e, n)
         new_user = User(name=name, e=e, n=n)
         db.session.add(new_user)
         db.session.commit()
 
         flash(f"✅ Registered user: {name}")
-        return redirect(url_for('register'))
+        return render_template("register.html", private_key=d)
 
     return render_template("register.html")
 
