@@ -104,7 +104,7 @@ def request_session_key():
 
     return render_template("request_key.html")
 
-
+'''
 @app.route("/decrypt-key", methods=["GET", "POST"])
 def decrypt_key():
     if request.method == "POST":
@@ -131,6 +131,7 @@ def decrypt_key():
             return render_template("decrypt_key.html", decrypted_key=None)
 
     return render_template("decrypt_key.html", decrypted_key=None)
+'''
 
 @app.route("/send-message", methods=["GET", "POST"])
 def send_message():
@@ -171,36 +172,49 @@ def send_message():
 def read_messages():
     if request.method == "POST":
         username = request.form.get("username")
-        caesar_key = request.form.get("caesar_key")
 
-        if not username or not caesar_key:
-            flash("⚠️ Please fill out both fields.")
-            return render_template("read_messages.html", messages_list=None)
+        if not username:
+            flash("⚠️ Please enter your username.")
+            return render_template("read_messages.html", show_decrypt_form=False)
 
         user = User.query.filter_by(name=username).first()
-
         if not user:
             flash("❌ User not found.")
-            return render_template("read_messages.html", messages_list=None)
+            return render_template("read_messages.html", show_decrypt_form=False)
 
-        caesar_key = int(caesar_key)
+        from_user = request.form.get("from_user")
+        caesar_key = request.form.get("caesar_key")
+        d = request.form.get("d")
 
-        # Fetch all messages sent to this user
-        received_msgs = Message.query.filter_by(receiver=username).all()
+        if from_user and caesar_key and d:
+            try:
+                caesar_key = int(caesar_key)
+                d = int(d)
+                msgs = Message.query.filter_by(receiver=username, sender=from_user).all()
 
-        if not received_msgs:
+                messages_list = []
+                for msg in msgs:
+                    decrypted_text = caesar_decrypt(msg.encrypted_text, caesar_key)
+                    messages_list.append({
+                        "encrypted": msg.encrypted_text,
+                        "decrypted": decrypted_text
+                    })
+
+                return render_template("read_messages.html", show_decrypt_form=True,
+                                       username=username, senders=[], messages_list=messages_list)
+            except Exception as e:
+                flash(f"❌ Decryption error: {e}")
+                return render_template("read_messages.html", show_decrypt_form=True,
+                                       username=username, senders=[], messages_list=None)
+
+        # Step 1 completed: get senders
+        sender_names = db.session.query(Message.sender).filter_by(receiver=username).distinct().all()
+        senders = [s[0] for s in sender_names]
+
+        if not senders:
             flash("📭 No messages found.")
-            return render_template("read_messages.html", messages_list=None)
+            return render_template("read_messages.html", show_decrypt_form=False)
 
-        messages_list = []
-        for msg in received_msgs:
-            decrypted_text = caesar_decrypt(msg.encrypted_text, caesar_key)
-            messages_list.append({
-                "sender": msg.sender,
-                "encrypted": msg.encrypted_text,
-                "decrypted": decrypted_text
-            })
+        return render_template("read_messages.html", show_decrypt_form=True, username=username, senders=senders)
 
-        return render_template("read_messages.html", messages_list=messages_list)
-
-    return render_template("read_messages.html", messages_list=None)
+    return render_template("read_messages.html", show_decrypt_form=False)
