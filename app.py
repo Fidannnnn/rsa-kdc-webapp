@@ -14,10 +14,20 @@ from rsa_utils import rsa_decrypt
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # required for flash messages
 
+
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
 
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
+# In your app.py or a test file:
+with app.app_context():
+    users = User.query.all()
+    for user in users:
+        print(user.name, user.e, user.n)
+
 
 # Just to check it's working
 @app.route("/")
@@ -37,11 +47,18 @@ def register():
             flash("⚠️ Please fill out all fields.")
             return render_template("register.html")
 
+        try:
+            e = int(e)
+            n = int(n)
+        except ValueError:
+            flash("❌ RSA key values must be integers.")
+            return render_template("register.html")
+
         if User.query.filter_by(name=name).first():
             flash("⚠️ User already exists!")
             return render_template("register.html")
 
-        new_user = User(name=name, e=int(e), n=int(n))
+        new_user = User(name=name, e=e, n=n)
         db.session.add(new_user)
         db.session.commit()
 
@@ -49,6 +66,7 @@ def register():
         return redirect(url_for('register'))
 
     return render_template("register.html")
+
 # POST /request-session-key
 @app.route("/request-session-key", methods=["GET", "POST"])
 def request_session_key():
