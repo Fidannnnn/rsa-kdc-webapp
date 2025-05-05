@@ -4,7 +4,7 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
 from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_TRACK_MODIFICATIONS
 from models import db, User, Message
-from rsa_utils import rsa_encrypt
+from rsa_utils import rsa_encrypt, generate_rsa_keys
 from caesar_utils import caesar_encrypt
 from caesar_utils import caesar_decrypt
 import random
