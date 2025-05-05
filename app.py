@@ -108,16 +108,22 @@ def request_session_key():
 @app.route("/decrypt-key", methods=["GET", "POST"])
 def decrypt_key():
     if request.method == "POST":
+        username = request.form.get("username")
         encrypted_key = request.form.get("encrypted_key")
         d = request.form.get("d")
-        n = request.form.get("n")
 
-        if not encrypted_key or not d or not n:
+        if not username or not encrypted_key or not d:
             flash("⚠️ All fields are required.")
             return render_template("decrypt_key.html", decrypted_key=None)
 
+        user = User.query.filter_by(name=username).first()
+
+        if not user:
+            flash("❌ User not found.")
+            return render_template("decrypt_key.html", decrypted_key=None)
+
         try:
-            caesar_key = rsa_decrypt(int(encrypted_key), int(d), int(n))
+            caesar_key = rsa_decrypt(int(encrypted_key), int(d), user.n)
             flash("✅ Caesar key decrypted successfully.")
             return render_template("decrypt_key.html", decrypted_key=caesar_key)
         except Exception as e:
