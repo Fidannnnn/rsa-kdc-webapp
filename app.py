@@ -135,38 +135,66 @@ def decrypt_key():
 
 @app.route("/send-message", methods=["GET", "POST"])
 def send_message():
+    existing_labels = []
+    from_user = to_user = ""
+
     if request.method == "POST":
         from_user = request.form.get("from_user")
         to_user = request.form.get("to_user")
         caesar_key = request.form.get("caesar_key")
         plaintext = request.form.get("plaintext")
+        session_label = request.form.get("session_label")
 
-        if not from_user or not to_user or not caesar_key or not plaintext:
+        if not from_user or not to_user or not caesar_key or not plaintext or not session_label:
             flash("⚠️ Please fill out all fields.")
-            return render_template("send_message.html")
+            return render_template("send_message.html", existing_labels=[], from_user=from_user, to_user=to_user)
 
         sender = User.query.filter_by(name=from_user).first()
         receiver = User.query.filter_by(name=to_user).first()
 
         if not sender or not receiver:
             flash("❌ Sender or receiver not found.")
-            return render_template("send_message.html")
+            return render_template("send_message.html", existing_labels=[], from_user=from_user, to_user=to_user)
+
+        # 🔐 Check for duplicate session label
+        existing_msg = Message.query.filter_by(
+            sender=from_user,
+            receiver=to_user,
+            session_label=session_label
+        ).first()
+
+        if existing_msg:
+            flash("⚠️ This session label already exists. Choose another one.")
+            return render_template("send_message.html", existing_labels=[], from_user=from_user, to_user=to_user)
 
         try:
             caesar_key = int(caesar_key)
             encrypted_msg = caesar_encrypt(plaintext, caesar_key)
         except Exception as e:
             flash(f"❌ Error encrypting message: {e}")
-            return render_template("send_message.html")
+            return render_template("send_message.html", existing_labels=[], from_user=from_user, to_user=to_user)
 
-        msg = Message(sender=from_user, receiver=to_user, encrypted_text=encrypted_msg)
+        msg = Message(
+            sender=from_user,
+            receiver=to_user,
+            encrypted_text=encrypted_msg,
+            session_label=session_label
+        )
         db.session.add(msg)
         db.session.commit()
 
-        flash(f"✅ Message sent to {to_user}! Encrypted as: {encrypted_msg}")
-        return render_template("send_message.html")
+        flash(f"✅ Message sent to {to_user} in session '{session_label}'!")
+        return render_template("send_message.html", existing_labels=[], from_user="", to_user="")
 
-    return render_template("send_message.html")
+    # GET: show existing session labels if names are known (optional)
+    from_user = request.args.get("from_user", "")
+    to_user = request.args.get("to_user", "")
+    if from_user and to_user:
+        labels = db.session.query(Message.session_label).filter_by(sender=from_user, receiver=to_user).distinct().all()
+        existing_labels = [label[0] for label in labels]
+
+    return render_template("send_message.html", existing_labels=existing_labels, from_user=from_user, to_user=to_user)
+
 
 @app.route("/read-messages", methods=["GET", "POST"])
 def read_messages():
@@ -183,10 +211,11 @@ def read_messages():
             return render_template("read_messages.html", show_decrypt_form=False)
 
         from_user = request.form.get("from_user")
-        encrypted_key = request.form.get("caesar_key")  # this is still RSA-encrypted Caesar key
+        session_label = request.form.get("session_label")
+        encrypted_key = request.form.get("caesar_key")
         d = request.form.get("d")
 
-        if from_user and encrypted_key and d:
+        if from_user and session_label and encrypted_key and d:
             try:
                 encrypted_key = int(encrypted_key)
                 d = int(d)
@@ -194,33 +223,39 @@ def read_messages():
                 # Decrypt Caesar key with RSA
                 caesar_key = rsa_decrypt(encrypted_key, d, user.n)
 
-                # Now decrypt messages from selected sender
-                msgs = Message.query.filter_by(receiver=username, sender=from_user).all()
+                # Fetch only messages in this session from selected sender
+                msgs = Message.query.filter_by(receiver=username, sender=from_user, session_label=session_label).all()
+
                 messages_list = []
                 for msg in msgs:
                     decrypted_text = caesar_decrypt(msg.encrypted_text, caesar_key)
                     messages_list.append({
+                        "sender": msg.sender,
                         "encrypted": msg.encrypted_text,
                         "decrypted": decrypted_text
                     })
 
                 return render_template("read_messages.html", show_decrypt_form=True,
-                                       username=username, senders=[], messages_list=messages_list)
+                                       username=username, labels_by_sender={}, messages_list=messages_list)
 
             except Exception as e:
                 flash(f"❌ Decryption error: {e}")
                 return render_template("read_messages.html", show_decrypt_form=True,
-                                       username=username, senders=[], messages_list=None)
+                                       username=username, labels_by_sender={}, messages_list=None)
 
-        # Step 1 completed: get senders
-        sender_names = db.session.query(Message.sender).filter_by(receiver=username).distinct().all()
-        senders = [s[0] for s in sender_names]
+        # Step 1: Get all senders and their session labels for this user
+        labels_by_sender = {}
+        labels = Message.query.with_entities(Message.sender, Message.session_label)\
+                    .filter_by(receiver=username).distinct().all()
 
-        if not senders:
+        for sender, label in labels:
+            labels_by_sender.setdefault(sender, []).append(label)
+
+        if not labels_by_sender:
             flash("📭 No messages found.")
             return render_template("read_messages.html", show_decrypt_form=False)
 
-        return render_template("read_messages.html", show_decrypt_form=True, username=username, senders=senders)
+        return render_template("read_messages.html", show_decrypt_form=True,
+                               username=username, labels_by_sender=labels_by_sender)
 
     return render_template("read_messages.html", show_decrypt_form=False)
-

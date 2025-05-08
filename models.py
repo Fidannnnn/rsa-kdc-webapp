@@ -18,3 +18,5 @@ class Message(db.Model):
     sender = db.Column(db.String(50), nullable=False)
     receiver = db.Column(db.String(50), nullable=False)
     encrypted_text = db.Column(db.Text, nullable=False)
+    session_label = db.Column(db.String(50), nullable=False)  # 👈 added for multi-session support
+
