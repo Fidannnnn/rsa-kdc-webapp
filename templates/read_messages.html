@@ -5,88 +5,68 @@
 {% block content %}
 <h2 class="mb-4">📬 Read Messages</h2>
 
-{% if not show_decrypt_form %}
-<!-- Step 1: Ask for Username -->
+{% if step == 1 %}
+<!-- Step 1: Enter your username -->
 <form method="POST" class="card p-4 shadow-sm">
     <div class="mb-3">
         <label for="username" class="form-label">Your Username:</label>
-        <input type="text" id="username" name="username" class="form-control" required>
+        <input type="text" name="username" class="form-control" required>
     </div>
     <button type="submit" class="btn btn-primary w-100">Next</button>
 </form>
 
-{% else %}
-<!-- Step 2: Show senders -->
-<h5 class="mt-4 mb-3">📨 You have messages from:</h5>
-<ul class="list-group mb-4">
-    {% for sender in labels_by_sender.keys() %}
-        <li class="list-group-item sender-click" style="cursor:pointer;" data-sender="{{ sender }}">
-            {{ sender }}
-        </li>
-    {% endfor %}
-</ul>
-
-<!-- Step 3: Decrypt Messages Form -->
-<form method="POST" class="card p-4 shadow-sm mb-4">
+{% elif step == 2 %}
+<!-- Step 2: Choose sender -->
+<form method="POST" class="card p-4 shadow-sm">
     <input type="hidden" name="username" value="{{ username }}">
-    <input type="hidden" name="from_user" id="from_user" value="">
-
-    <div class="mb-3" id="session-wrapper" style="display:none;">
-        <label for="session_label" class="form-label">Session Label:</label>
-        <select name="session_label" id="session_label" class="form-select" required></select>
-    </div>
 
     <div class="mb-3">
-        <label for="caesar_key" class="form-label">Encrypted Caesar Key:</label>
-        <input type="number" id="caesar_key" name="caesar_key" class="form-control" required>
+        <label for="from_user" class="form-label">Select who messaged you:</label>
+        <select name="from_user" class="form-select" required>
+            {% for sender in senders %}
+                <option value="{{ sender }}">{{ sender }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-success w-100">Continue</button>
+</form>
+
+{% elif step == 3 %}
+<!-- Step 3: Choose session + decrypt -->
+<form method="POST" class="card p-4 shadow-sm">
+    <input type="hidden" name="username" value="{{ username }}">
+    <input type="hidden" name="from_user" value="{{ from_user }}">
+
+    <div class="mb-3">
+        <label for="session_label" class="form-label">Select Session:</label>
+        <select name="session_label" class="form-select" required>
+            {% for label in session_labels %}
+                <option value="{{ label }}">{{ label }}</option>
+            {% endfor %}
+        </select>
     </div>
 
     <div class="mb-3">
         <label for="d" class="form-label">Your Private Key (d):</label>
-        <input type="number" id="d" name="d" class="form-control" required>
+        <input type="number" name="d" class="form-control" required>
     </div>
 
-    <button type="submit" class="btn btn-success w-100">Decrypt Messages</button>
+    <button type="submit" class="btn btn-success w-100">View Messages</button>
 </form>
 
-{% if messages_list %}
-<hr>
-<h4>🗝️ Decrypted Messages in Session '{{ request.form.session_label }}'</h4>
+{% elif step == 4 %}
+<!-- Step 4: Show decrypted messages -->
+<h4>🗝️ Decrypted Messages in "{{ session_label }}"</h4>
 <ul class="list-group mt-3">
     {% for msg in messages_list %}
         <li class="list-group-item">
-            <strong>From:</strong> {{ msg.sender }}<br>
             <strong>Encrypted:</strong> {{ msg.encrypted }}<br>
             <strong>Decrypted:</strong> {{ msg.decrypted }}
         </li>
     {% endfor %}
 </ul>
-{% endif %}
+<a href="{{ url_for('read_messages') }}" class="btn btn-secondary mt-4">🔄 Start Over</a>
 {% endif %}
 
-<!-- Embedded sender/session selection JS -->
-<script id="labels-data" type="application/json">
-    {{ labels_by_sender | tojson }}
-</script>
-<script>
-    const labels = JSON.parse(document.getElementById("labels-data").textContent);
-    const sessionWrapper = document.getElementById("session-wrapper");
-    const sessionDropdown = document.getElementById("session_label");
-    const fromUserInput = document.getElementById("from_user");
-
-    document.querySelectorAll(".sender-click").forEach(item => {
-        item.addEventListener("click", () => {
-            const sender = item.getAttribute("data-sender");
-            fromUserInput.value = sender;
-            sessionDropdown.innerHTML = "";
-            labels[sender].forEach(label => {
-                const opt = document.createElement("option");
-                opt.value = label;
-                opt.textContent = label;
-                sessionDropdown.appendChild(opt);
-            });
-            sessionWrapper.style.display = "block";
-        });
-    });
-</script>
 {% endblock %}

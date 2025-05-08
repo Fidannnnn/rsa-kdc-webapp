@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Create a Session{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">🧩 Create a Session</h2>
+
+<form method="POST" action="/create-session" class="card p-4 shadow-sm">
+    <div class="mb-3">
+        <label for="from_user" class="form-label">Your name:</label>
+        <input type="text" id="from_user" name="from_user" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="to_user" class="form-label">Friend's name:</label>
+        <input type="text" id="to_user" name="to_user" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="session_label" class="form-label">Session Label:</label>
+        <input type="text" id="session_label" name="session_label" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Create Session</button>
+</form>
+
+{% if encrypted_keys %}
+<hr>
+<h4 class="mt-4">🔐 Encrypted Caesar Keys</h4>
+<ul class="list-group">
+    <li class="list-group-item"><strong>{{ from_user }}:</strong> {{ encrypted_keys[from_user] }}</li>
+    <li class="list-group-item"><strong>{{ to_user }}:</strong> {{ encrypted_keys[to_user] }}</li>
+</ul>
+<div class="alert alert-warning mt-3">
+    ⚠️ Each user must decrypt their own key using their private RSA key!
+</div>
+{% endif %}
+{% endblock %}
