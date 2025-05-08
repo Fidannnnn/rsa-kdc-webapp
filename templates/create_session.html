@@ -31,8 +31,11 @@
     <li class="list-group-item"><strong>{{ from_user }}:</strong> {{ encrypted_keys[from_user] }}</li>
     <li class="list-group-item"><strong>{{ to_user }}:</strong> {{ encrypted_keys[to_user] }}</li>
 </ul>
+<!--
 <div class="alert alert-warning mt-3">
     ⚠️ Each user must decrypt their own key using their private RSA key!
 </div>
+--->
+
 {% endif %}
 {% endblock %}

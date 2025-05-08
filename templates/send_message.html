@@ -6,30 +6,31 @@
 <h2 class="mb-4">📨 Send a Message</h2>
 
 {% if step == 1 %}
-<!-- Step 1: Username & Private Key -->
+<!-- Step 1: Enter your name and private key -->
 <form method="POST" class="card p-4 shadow-sm">
     <div class="mb-3">
-        <label for="username" class="form-label">Your Name:</label>
-        <input type="text" name="username" class="form-control" required>
+        <label for="username" class="form-label">Your Username:</label>
+        <input type="text" id="username" name="username" class="form-control" required>
     </div>
 
     <div class="mb-3">
         <label for="d" class="form-label">Your Private Key (d):</label>
-        <input type="number" name="d" class="form-control" required>
+        <input type="number" id="d" name="d" class="form-control" required>
     </div>
 
     <button type="submit" class="btn btn-primary w-100">Continue</button>
 </form>
 
 {% elif step == 2 %}
-<!-- Step 2: Select user and session -->
+<!-- Step 2: Choose user and session label -->
 <form method="POST" class="card p-4 shadow-sm">
     <input type="hidden" name="username" value="{{ username }}">
     <input type="hidden" name="d" value="{{ d }}">
 
     <div class="mb-3">
         <label for="target_user" class="form-label">Select User:</label>
-        <select name="target_user" class="form-select" required>
+        <select id="target_user" name="target_user" class="form-select" required>
+            <option value="" disabled selected>Choose a user</option>
             {% for user in users %}
                 <option value="{{ user }}">{{ user }}</option>
             {% endfor %}
@@ -37,15 +38,20 @@
     </div>
 
     <div class="mb-3">
-        <label for="session_label" class="form-label">Session Label:</label>
-        <input type="text" name="session_label" class="form-control" required>
+        <label for="session_label" class="form-label">Select Session Label:</label>
+        <select id="session_label" name="session_label" class="form-select" required>
+            <option value="" disabled selected>Choose a session</option>
+            {% for label in session_labels %}
+                <option value="{{ label }}">{{ label }}</option>
+            {% endfor %}
+        </select>
     </div>
 
     <button type="submit" class="btn btn-success w-100">Decrypt Session</button>
 </form>
 
 {% elif step == 3 %}
-<!-- Step 3: Compose and Send Message -->
+<!-- Step 3: Enter message -->
 <form method="POST" class="card p-4 shadow-sm">
     <input type="hidden" name="username" value="{{ username }}">
     <input type="hidden" name="d" value="{{ d }}">
@@ -60,7 +66,7 @@
 
     <div class="mb-3">
         <label for="plaintext" class="form-label">Message:</label>
-        <textarea name="plaintext" class="form-control" rows="3" required></textarea>
+        <textarea id="plaintext" name="plaintext" class="form-control" rows="3" required></textarea>
     </div>
 
     <button type="submit" class="btn btn-primary w-100">Send Message</button>
