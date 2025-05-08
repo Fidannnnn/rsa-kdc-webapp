@@ -168,26 +168,37 @@ def send_message():
         session_label = request.form.get("session_label")
         plaintext = request.form.get("plaintext")
 
-        # Step 1: Just entered username and private key
-        if username and d and not (target_user and session_label and plaintext):
+        # ✅ Step 1: User provides their name and private key
+        if username and d and not target_user:
             user = User.query.filter_by(name=username).first()
             if not user:
                 flash("❌ User not found.")
                 return render_template("send_message.html", step=1)
 
-            # Get all users this person has sessions with
+            # Fetch all users the person has sessions with
             partners = db.session.query(Session.to_user).filter_by(from_user=username).distinct().all()
             from_other_side = db.session.query(Session.from_user).filter_by(to_user=username).distinct().all()
             all_users = list(set([p[0] for p in partners + from_other_side if p[0] != username]))
 
             return render_template("send_message.html", step=2, username=username, d=d, users=all_users)
 
-        # Step 2: User selected a target and session label
+        # ✅ Intermediate Step: User selected target_user but not session_label yet
+        elif username and d and target_user and not session_label:
+            session_labels_raw = db.session.query(Session.label).filter(
+                ((Session.from_user == username) & (Session.to_user == target_user)) |
+                ((Session.from_user == target_user) & (Session.to_user == username))
+            ).distinct().all()
+            session_labels = [row[0] for row in session_labels_raw]
+
+            return render_template("send_message.html", step=2, username=username, d=d,
+                                   users=[], target_user=target_user, session_labels=session_labels)
+
+        # ✅ Step 2: User selected both target and session
         elif username and d and target_user and session_label and not plaintext:
             session = Session.query.filter(
-                ((Session.from_user == username) & (Session.to_user == target_user) |
-                 (Session.from_user == target_user) & (Session.to_user == username)) &
-                (Session.label == session_label)
+                ((Session.from_user == username) & (Session.to_user == target_user)) |
+                ((Session.from_user == target_user) & (Session.to_user == username)),
+                Session.label == session_label
             ).first()
 
             if not session:
@@ -205,7 +216,7 @@ def send_message():
                 flash(f"❌ Failed to decrypt session key: {e}")
                 return render_template("send_message.html", step=1)
 
-        # Step 3: Encrypt and send message
+        # ✅ Step 3: User submits plaintext to send
         elif username and target_user and session_label and plaintext and d:
             msg = caesar_encrypt(plaintext, int(request.form.get("caesar_key")))
             new_msg = Message(sender=username, receiver=target_user,
@@ -218,7 +229,9 @@ def send_message():
         flash("⚠️ Please fill out required fields.")
         return render_template("send_message.html", step=1)
 
+    # Initial GET request
     return render_template("send_message.html", step=1)
+
 
 
 

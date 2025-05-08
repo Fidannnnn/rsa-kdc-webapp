@@ -5,71 +5,88 @@
 {% block content %}
 <h2 class="mb-4">📨 Send a Message</h2>
 
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert alert-info">
+      {% for message in messages %}
+        <div>{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
 {% if step == 1 %}
-<!-- Step 1: Enter your name and private key -->
+<!-- Step 1: Enter username + private key -->
 <form method="POST" class="card p-4 shadow-sm">
-    <div class="mb-3">
-        <label for="username" class="form-label">Your Username:</label>
-        <input type="text" id="username" name="username" class="form-control" required>
-    </div>
-
-    <div class="mb-3">
-        <label for="d" class="form-label">Your Private Key (d):</label>
-        <input type="number" id="d" name="d" class="form-control" required>
-    </div>
-
-    <button type="submit" class="btn btn-primary w-100">Continue</button>
+  <div class="mb-3">
+    <label for="username" class="form-label">Your Username:</label>
+    <input type="text" id="username" name="username" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label for="d" class="form-label">Your Private Key (d):</label>
+    <input type="number" id="d" name="d" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary w-100">Next</button>
 </form>
 
 {% elif step == 2 %}
-<!-- Step 2: Choose user and session label -->
+<!-- Step 2: Select user and session label -->
 <form method="POST" class="card p-4 shadow-sm">
-    <input type="hidden" name="username" value="{{ username }}">
-    <input type="hidden" name="d" value="{{ d }}">
+  <input type="hidden" name="username" value="{{ username }}">
+  <input type="hidden" name="d" value="{{ d }}">
 
-    <div class="mb-3">
-        <label for="target_user" class="form-label">Select User:</label>
-        <select id="target_user" name="target_user" class="form-select" required>
-            <option value="" disabled selected>Choose a user</option>
-            {% for user in users %}
-                <option value="{{ user }}">{{ user }}</option>
-            {% endfor %}
-        </select>
-    </div>
+  {% if users %}
+  <!-- Show users only if they haven't selected one yet -->
+  <div class="mb-3">
+    <label for="target_user" class="form-label">Select User:</label>
+    <select id="target_user" name="target_user" class="form-select" required>
+      <option value="" disabled selected>Select user</option>
+      {% for u in users %}
+        <option value="{{ u }}">{{ u }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% else %}
+  <!-- Show target_user as hidden field -->
+  <input type="hidden" name="target_user" value="{{ target_user }}">
+  <p><strong>To:</strong> {{ target_user }}</p>
+  {% endif %}
 
-    <div class="mb-3">
-        <label for="session_label" class="form-label">Select Session Label:</label>
-        <select id="session_label" name="session_label" class="form-select" required>
-            <option value="" disabled selected>Choose a session</option>
-            {% for label in session_labels %}
-                <option value="{{ label }}">{{ label }}</option>
-            {% endfor %}
-        </select>
-    </div>
+  {% if session_labels %}
+  <div class="mb-3">
+    <label for="session_label" class="form-label">Select Session Label:</label>
+    <select name="session_label" id="session_label" class="form-select" required>
+      <option value="" disabled selected>Select session</option>
+      {% for label in session_labels %}
+        <option value="{{ label }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
 
-    <button type="submit" class="btn btn-success w-100">Decrypt Session</button>
+  <button type="submit" class="btn btn-success w-100">Continue</button>
 </form>
 
 {% elif step == 3 %}
 <!-- Step 3: Enter message -->
 <form method="POST" class="card p-4 shadow-sm">
-    <input type="hidden" name="username" value="{{ username }}">
-    <input type="hidden" name="d" value="{{ d }}">
-    <input type="hidden" name="target_user" value="{{ target_user }}">
-    <input type="hidden" name="session_label" value="{{ session_label }}">
-    <input type="hidden" name="caesar_key" value="{{ caesar_key }}">
+  <input type="hidden" name="username" value="{{ username }}">
+  <input type="hidden" name="d" value="{{ d }}">
+  <input type="hidden" name="target_user" value="{{ target_user }}">
+  <input type="hidden" name="session_label" value="{{ session_label }}">
+  <input type="hidden" name="caesar_key" value="{{ caesar_key }}">
 
-    <div class="mb-3">
-        <label class="form-label">Decrypted Caesar Key:</label>
-        <input type="text" value="{{ caesar_key }}" class="form-control" readonly>
-    </div>
+  <div class="mb-3">
+    <label class="form-label">Decrypted Caesar Key:</label>
+    <input type="text" class="form-control" value="{{ caesar_key }}" readonly>
+  </div>
 
-    <div class="mb-3">
-        <label for="plaintext" class="form-label">Message:</label>
-        <textarea id="plaintext" name="plaintext" class="form-control" rows="3" required></textarea>
-    </div>
+  <div class="mb-3">
+    <label for="plaintext" class="form-label">Message:</label>
+    <textarea id="plaintext" name="plaintext" rows="4" class="form-control" required></textarea>
+  </div>
 
-    <button type="submit" class="btn btn-primary w-100">Send Message</button>
+  <button type="submit" class="btn btn-primary w-100">Send</button>
 </form>
 {% endif %}
 
