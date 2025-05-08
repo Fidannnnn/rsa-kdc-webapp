@@ -1,48 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Request Session Key</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <h2 class="mb-4">🔑 Request Session Key</h2>
+{% extends "base.html" %}
 
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-info">
-              {% for message in messages %}
-                <div>{{ message }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
+{% block title %}Request Session Key{% endblock %}
 
-        <form method="POST" action="/request-session-key" class="card p-4 shadow-sm">
-            <div class="mb-3">
-                <label for="from_user" class="form-label">Your name:</label>
-                <input type="text" id="from_user" name="from_user" class="form-control" required>
-            </div>
+{% block content %}
+<h2 class="mb-4">🔑 Request Session Key</h2>
 
-            <div class="mb-3">
-                <label for="to_user" class="form-label">Friend's name:</label>
-                <input type="text" id="to_user" name="to_user" class="form-control" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100">Get Encrypted Caesar Key</button>
-        </form>
-
-        {% if encrypted_keys %}
-            <div class="mt-4">
-                <h5>🔐 Encrypted Caesar Keys:</h5>
-                <ul class="list-group">
-                    {% for user, key in encrypted_keys.items() %}
-                        <li class="list-group-item">{{ user }}: {{ key }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
+<form method="POST" class="card p-4 shadow-sm">
+    <div class="mb-3">
+        <label for="from_user" class="form-label">Your name:</label>
+        <input type="text" id="from_user" name="from_user" class="form-control" required>
     </div>
-</body>
-</html>
+
+    <div class="mb-3">
+        <label for="to_user" class="form-label">Friend's name:</label>
+        <input type="text" id="to_user" name="to_user" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Generate Encrypted Session Key</button>
+</form>
+
+{% if encrypted_keys %}
+<hr>
+<h4 class="mt-4">🔐 Encrypted Caesar Keys:</h4>
+<ul class="list-group">
+  {% for user, key in encrypted_keys.items() %}
+    <li class="list-group-item">
+      <strong>{{ user }}:</strong> {{ key }}
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
