@@ -183,15 +183,19 @@ def read_messages():
             return render_template("read_messages.html", show_decrypt_form=False)
 
         from_user = request.form.get("from_user")
-        caesar_key = request.form.get("caesar_key")
+        encrypted_key = request.form.get("caesar_key")  # this is still RSA-encrypted Caesar key
         d = request.form.get("d")
 
-        if from_user and caesar_key and d:
+        if from_user and encrypted_key and d:
             try:
-                caesar_key = int(caesar_key)
+                encrypted_key = int(encrypted_key)
                 d = int(d)
-                msgs = Message.query.filter_by(receiver=username, sender=from_user).all()
 
+                # Decrypt Caesar key with RSA
+                caesar_key = rsa_decrypt(encrypted_key, d, user.n)
+
+                # Now decrypt messages from selected sender
+                msgs = Message.query.filter_by(receiver=username, sender=from_user).all()
                 messages_list = []
                 for msg in msgs:
                     decrypted_text = caesar_decrypt(msg.encrypted_text, caesar_key)
@@ -202,6 +206,7 @@ def read_messages():
 
                 return render_template("read_messages.html", show_decrypt_form=True,
                                        username=username, senders=[], messages_list=messages_list)
+
             except Exception as e:
                 flash(f"❌ Decryption error: {e}")
                 return render_template("read_messages.html", show_decrypt_form=True,
@@ -218,3 +223,4 @@ def read_messages():
         return render_template("read_messages.html", show_decrypt_form=True, username=username, senders=senders)
 
     return render_template("read_messages.html", show_decrypt_form=False)
+
