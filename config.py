@@ -1,4 +1,4 @@
-# db
+# for db
 # config.py
 
 import os
